@@ -51,3 +51,4 @@ export const PROVIDER_COLORS: Record<string, { primary: string; bg: string; bord
     glow: "rgba(66,133,244,0.15)",
   },
 };
+// commit-marker-3
