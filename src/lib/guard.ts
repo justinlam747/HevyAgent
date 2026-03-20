@@ -127,3 +127,4 @@ export function estimateTokens(messages: { content: string }[]): number {
   // Add overhead for system prompt + tool definitions (~2000 tokens)
   return Math.ceil(totalChars / 4) + 2000;
 }
+// commit-marker-2
