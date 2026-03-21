@@ -7,3 +7,4 @@ export default function InsightsPage() {
   const { workouts, templates } = useAppData();
   return <Insights workouts={workouts} templates={templates} />;
 }
+// commit-marker-9
