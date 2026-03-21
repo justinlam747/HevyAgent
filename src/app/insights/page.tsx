@@ -8,3 +8,4 @@ export default function InsightsPage() {
   return <Insights workouts={workouts} templates={templates} />;
 }
 // commit-marker-9
+// commit-marker-16
