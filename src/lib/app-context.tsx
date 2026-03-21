@@ -31,3 +31,4 @@ export function useAppData(): AppData {
   if (!ctx) throw new Error("useAppData must be used inside AppDataProvider");
   return ctx;
 }
+// commit-marker-12
