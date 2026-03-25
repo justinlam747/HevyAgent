@@ -112,7 +112,7 @@ export default function Home() {
         )}
         <div className={tab === "agent" ? "page-body page-body-agent" : "page-body"}>
           {tab === "agent" ? (
-            <ChatBot workouts={workouts} templates={templates} hevyApiKey={apiKey} />
+            <ChatBot workouts={workouts} templates={templates} />
           ) : (
             <>
               {tab === "calendar" && (

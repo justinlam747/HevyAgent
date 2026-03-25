@@ -17,8 +17,18 @@ import {
 import type { Workout, ExerciseTemplate } from "@/lib/hevy";
 import Logo from "./Logo";
 import NiceAvatar, { genConfig } from "react-nice-avatar";
+import { ClaudeLogo, OpenAILogo, GeminiLogo } from "./ProviderLogos";
+import { buildWorkoutContext, CHEVY_SYSTEM_PROMPT } from "@/lib/context";
+import type { Provider } from "@/lib/providers";
+import { PROVIDERS, getSavedProvider, saveProvider } from "@/lib/providers";
 
 const USER_AVATAR_CONFIG = genConfig({ sex: "man", hairStyle: "thick", shirtStyle: "polo", bgColor: "#6366f1" });
+
+const PROVIDER_ICONS: Record<Provider, React.ReactNode> = {
+  claude: <ClaudeLogo size={16} />,
+  openai: <OpenAILogo size={16} />,
+  gemini: <GeminiLogo size={16} />,
+};
 
 interface Message {
   role: "user" | "assistant";
@@ -73,25 +83,25 @@ function groupByDate(convos: Conversation[]): { label: string; items: Conversati
 export default function ChatBot({
   workouts,
   templates,
-  hevyApiKey,
 }: {
   workouts: Workout[];
   templates: Map<string, ExerciseTemplate>;
-  hevyApiKey: string;
 }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
-  const [ingested, setIngested] = useState(false);
-  const [ingesting, setIngesting] = useState(false);
-  const [remaining, setRemaining] = useState<{ requests: number; tokens: number } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Provider state
+  const [provider, setProvider] = useState<Provider>("claude");
+  const [providerKey, setProviderKey] = useState("");
+  const [showProviderSetup, setShowProviderSetup] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const ingestLock = useRef(false);
 
   const activeConvo = useMemo(
     () => conversations.find((c) => c.id === activeId) ?? null,
@@ -99,7 +109,7 @@ export default function ChatBot({
   );
   const messages = activeConvo?.messages ?? [];
 
-  // Load conversations from localStorage
+  // Load conversations + provider from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(CONVERSATIONS_KEY);
     if (stored) {
@@ -107,6 +117,13 @@ export default function ChatBot({
         const parsed: Conversation[] = JSON.parse(stored);
         setConversations(parsed.sort((a, b) => b.updatedAt - a.updatedAt));
       } catch { /* ignore */ }
+    }
+    const saved = getSavedProvider();
+    if (saved) {
+      setProvider(saved.provider);
+      setProviderKey(saved.apiKey);
+    } else {
+      setShowProviderSetup(true);
     }
   }, []);
 
@@ -122,34 +139,20 @@ export default function ChatBot({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streamingText]);
 
-  const templatesArr = useMemo(() => Array.from(templates.values()), [templates]);
+  // Build workout context for system prompt
+  const workoutContext = useMemo(
+    () => buildWorkoutContext(workouts, templates),
+    [workouts, templates]
+  );
 
-  const ingestData = useCallback(async () => {
-    if (ingested || ingesting || ingestLock.current) return;
-    ingestLock.current = true;
-    setIngesting(true);
-    try {
-      const res = await fetch("/api/ingest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hevyApiKey, workouts, templates: templatesArr }),
-      });
-      const data = await res.json();
-      if (data.success) setIngested(true);
-      else console.error("[ingest]", data.error);
-    } catch (e) {
-      console.error("[ingest]", e);
-    } finally {
-      setIngesting(false);
-      ingestLock.current = false;
-    }
-  }, [hevyApiKey, workouts, templatesArr, ingested, ingesting]);
+  const isReady = !!providerKey && workouts.length > 0;
 
-  useEffect(() => {
-    if (workouts.length > 0 && !ingested && !ingesting) {
-      ingestData();
+  const handleSaveProvider = useCallback(() => {
+    if (providerKey.trim()) {
+      saveProvider(provider, providerKey.trim());
+      setShowProviderSetup(false);
     }
-  }, [workouts.length, ingested, ingesting, ingestData]);
+  }, [provider, providerKey]);
 
   const updateConversation = useCallback(
     (id: string, updater: (c: Conversation) => Conversation) => {
@@ -211,21 +214,22 @@ export default function ChatBot({
     setStreamingText("");
 
     try {
+      const systemPrompt = CHEVY_SYSTEM_PROMPT + workoutContext;
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          provider,
+          apiKey: providerKey,
+          model: PROVIDERS[provider].defaultModel,
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-          hevyApiKey,
+          system: systemPrompt,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        if (res.status === 400 && data.error?.includes("Session expired")) {
-          setIngested(false);
-          throw new Error("Session expired — re-indexing workouts. Please try again in a moment.");
-        }
         throw new Error(data.error || "Request failed");
       }
 
@@ -251,9 +255,7 @@ export default function ChatBot({
 
           try {
             const parsed = JSON.parse(data);
-            if (parsed.meta?.remaining) setRemaining(parsed.meta.remaining);
             if (parsed.text) { fullText += parsed.text; setStreamingText(fullText); }
-            if (parsed.replace) { fullText = parsed.replace; setStreamingText(fullText); }
             if (parsed.error) throw new Error(parsed.error);
           } catch (e) {
             if (e instanceof SyntaxError) continue;
@@ -360,15 +362,17 @@ export default function ChatBot({
         </div>
 
         <div className="chat-sidebar-footer">
-          <div className="chat-sidebar-status">
-            <div className={`chat-status-dot ${ingested ? "online" : "offline"}`} />
-            <span>
-              {ingesting ? "Indexing..." : ingested ? `${workouts.length} workouts` : "Connecting..."}
-            </span>
-          </div>
-          {remaining && (
-            <span className="chat-sidebar-remaining">{remaining.requests} requests left</span>
-          )}
+          <button
+            onClick={() => setShowProviderSetup(true)}
+            className="chat-sidebar-status"
+            style={{ cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%" }}
+          >
+            <div className="flex items-center gap-1.5">
+              {PROVIDER_ICONS[provider]}
+              <span className="text-[12px] text-[var(--text-secondary)]">{PROVIDERS[provider].name}</span>
+            </div>
+            <span className="text-[10px] text-[var(--text-muted)]">{workouts.length} workouts</span>
+          </button>
         </div>
       </div>
 
@@ -410,11 +414,11 @@ export default function ChatBot({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything..."
-                  disabled={loading || !ingested}
+                  disabled={loading || !isReady}
                 />
                 <button
                   type="submit"
-                  disabled={loading || !input.trim() || !ingested}
+                  disabled={loading || !input.trim() || !isReady}
                   className="chat-send-btn"
                 >
                   <SendHorizontal size={16} strokeWidth={2.5} />
@@ -427,7 +431,7 @@ export default function ChatBot({
                   <button
                     key={p.title}
                     onClick={() => send(p.desc)}
-                    disabled={loading || !ingested}
+                    disabled={loading || !isReady}
                     className="chat-preset-card"
                   >
                     <span className="chat-preset-icon"><p.icon size={18} /></span>
@@ -526,11 +530,11 @@ export default function ChatBot({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about your workouts..."
-                  disabled={loading || !ingested}
+                  disabled={loading || !isReady}
                 />
                 <button
                   type="submit"
-                  disabled={loading || !input.trim() || !ingested}
+                  disabled={loading || !input.trim() || !isReady}
                   className="chat-send-btn"
                 >
                   <SendHorizontal size={16} strokeWidth={2.5} />
@@ -540,6 +544,91 @@ export default function ChatBot({
           </div>
         )}
       </div>
+
+      {/* Provider Setup Modal */}
+      {showProviderSetup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6 space-y-5" style={{
+            background: "rgba(17, 17, 17, 0.95)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+          }}>
+            <div>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">Connect AI Provider</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Choose your AI provider and enter your API key. Keys are stored locally in your browser.</p>
+            </div>
+
+            {/* Provider selector */}
+            <div className="flex gap-2">
+              {(Object.keys(PROVIDERS) as Provider[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setProvider(p)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all"
+                  style={{
+                    background: provider === p ? "rgba(79,156,247,0.12)" : "rgba(255,255,255,0.03)",
+                    border: provider === p ? "1px solid rgba(79,156,247,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  {PROVIDER_ICONS[p]}
+                  <span className={provider === p ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}>
+                    {PROVIDERS[p].name}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* API key input */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-[var(--text-secondary)]">
+                {PROVIDERS[provider].name} API Key
+              </label>
+              <input
+                type="password"
+                value={providerKey}
+                onChange={(e) => setProviderKey(e.target.value)}
+                placeholder={PROVIDERS[provider].placeholder}
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = "rgba(79,156,247,0.4)"}
+                onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+              />
+            </div>
+
+            {/* Model info */}
+            <p className="text-[10px] text-[var(--text-muted)]">
+              Model: {PROVIDERS[provider].defaultModel}
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-2">
+              {providerKey && (
+                <button
+                  onClick={() => setShowProviderSetup(false)}
+                  className="flex-1 py-2.5 rounded-xl text-xs text-[var(--text-muted)] transition-all"
+                  style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                onClick={handleSaveProvider}
+                disabled={!providerKey.trim()}
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium text-white transition-all disabled:opacity-20"
+                style={{
+                  background: "linear-gradient(180deg, #5aa3f9 0%, #3b7dd8 50%, #2e6bc0 100%)",
+                  boxShadow: "0 4px 12px rgba(79,156,247,0.3), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.15)",
+                }}
+              >
+                Save & Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,181 +1,182 @@
 import { NextRequest } from "next/server";
-import { runAgentStream } from "@/lib/agent";
-import { checkRateLimit, validateInput } from "@/lib/ratelimit";
-import { guardInput, sanitizeOutput, estimateTokens } from "@/lib/guard";
-import { prefetchContext, buildMinimalContext } from "@/lib/prefetch";
-import { getCachedSession } from "@/lib/server-cache";
+import { guardInput } from "@/lib/guard";
 
-// Request-level deduplication
-const inflightRequests = new Map<string, boolean>();
+export const runtime = "edge";
 
-function requestKey(apiKey: string, lastMessage: string): string {
-  let hash = 0;
-  const str = apiKey.slice(-8) + lastMessage;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36);
+interface ChatRequest {
+  provider: "claude" | "openai" | "gemini";
+  apiKey: string;
+  model: string;
+  messages: { role: "user" | "assistant"; content: string }[];
+  system: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      messages,
-      hevyApiKey,
-    }: {
-      messages: { role: "user" | "assistant"; content: string }[];
-      hevyApiKey: string;
-    } = body;
+    const body: ChatRequest = await req.json();
+    const { provider, apiKey, model, messages, system } = body;
 
-    if (!hevyApiKey) {
-      return new Response(JSON.stringify({ error: "Hevy API key required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (!apiKey || !provider || !messages?.length || !system) {
+      return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
-    if (!anthropicKey || !openaiKey) {
-      return new Response(JSON.stringify({ error: "API keys not configured on server" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Guard input
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === "user") {
+      const guard = guardInput(lastMsg.content);
+      if (guard.blocked) {
+        return Response.json({ error: guard.reason ?? "Input blocked" }, { status: 400 });
+      }
     }
 
-    // --- LAYER 1: Input validation ---
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage || lastMessage.role !== "user") {
-      return new Response(JSON.stringify({ error: "No user message found" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Token estimate check
+    const totalChars = messages.reduce((s, m) => s + m.content.length, 0) + system.length;
+    if (totalChars > 200000) {
+      return Response.json({ error: "Request too large" }, { status: 400 });
     }
 
-    const inputValidation = validateInput(lastMessage.content, messages.length);
-    if (!inputValidation.valid) {
-      return new Response(JSON.stringify({ error: inputValidation.reason }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    switch (provider) {
+      case "claude":
+        return streamClaude(apiKey, model, messages, system);
+      case "openai":
+        return streamOpenAI(apiKey, model, messages, system);
+      case "gemini":
+        return streamGemini(apiKey, model, messages, system);
+      default:
+        return Response.json({ error: "Unknown provider" }, { status: 400 });
     }
-
-    // --- LAYER 2: Prompt injection guard ---
-    const guardResult = guardInput(lastMessage.content);
-    if (guardResult.blocked) {
-      console.warn("[guard] Blocked input:", guardResult.flags, lastMessage.content.slice(0, 100));
-      return new Response(
-        JSON.stringify({ error: "Your message was flagged. Please rephrase your question about workouts." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // --- LAYER 3: Rate limiting ---
-    const tokenEstimate = estimateTokens(messages);
-    const rateCheck = await checkRateLimit(hevyApiKey, tokenEstimate);
-    if (!rateCheck.allowed) {
-      return new Response(JSON.stringify({ error: rateCheck.reason }), {
-        status: 429,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // --- LAYER 4: Request deduplication ---
-    const dedupeKey = requestKey(hevyApiKey, lastMessage.content);
-    if (inflightRequests.get(dedupeKey)) {
-      return new Response(JSON.stringify({ error: "Request already in progress" }), {
-        status: 429,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // --- LAYER 5: Load cached session ---
-    const session = getCachedSession(hevyApiKey);
-    if (!session) {
-      return new Response(
-        JSON.stringify({ error: "Session expired. Please refresh the page to re-index your workouts." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const { workouts, templates, vectorDb } = session;
-
-    inflightRequests.set(dedupeKey, true);
-
-    try {
-      // --- LAYER 6: Prefetch context ---
-      const prefetch = await prefetchContext(
-        lastMessage.content,
-        workouts,
-        templates,
-        vectorDb
-      );
-
-      console.log(`[prefetch] Intent: ${prefetch.intent}, Context tokens: ~${prefetch.tokenEstimate}, Tools: ${prefetch.toolHints.join(",")}`);
-
-      const minimalContext = buildMinimalContext(prefetch, workouts.length);
-
-      // --- LAYER 7: Stream agent response via SSE ---
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            // Send rate limit metadata first
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ meta: { remaining: rateCheck.remaining } })}\n\n`)
-            );
-
-            let fullText = "";
-            for await (const chunk of runAgentStream(messages, {
-              anthropicKey,
-              openaiKey,
-              workouts,
-              templates,
-              vectorDb,
-            }, minimalContext)) {
-              fullText += chunk;
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
-              );
-            }
-
-            // Sanitize and send final (in case sanitization changed something)
-            const sanitized = sanitizeOutput(fullText);
-            if (sanitized !== fullText) {
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ replace: sanitized })}\n\n`)
-              );
-            }
-
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          } catch (e) {
-            console.error("[chat stream]", e);
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ error: e instanceof Error ? e.message : "Agent error" })}\n\n`)
-            );
-          } finally {
-            controller.close();
-          }
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
-      });
-    } finally {
-      setTimeout(() => inflightRequests.delete(dedupeKey), 5000);
-    }
-  } catch (error) {
-    console.error("[chat]", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Agent error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+  } catch (e) {
+    return Response.json(
+      { error: e instanceof Error ? e.message : "Internal error" },
+      { status: 500 }
     );
   }
+}
+
+// ═══ Claude ═══
+
+async function streamClaude(
+  apiKey: string, model: string,
+  messages: { role: string; content: string }[], system: string
+) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model, max_tokens: 2048, system, stream: true,
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    return Response.json({ error: `Claude: ${res.status} ${err}` }, { status: res.status });
+  }
+
+  return transformSSE(res, (parsed) => {
+    if (parsed.type === "content_block_delta" && parsed.delta?.text) return parsed.delta.text;
+    return null;
+  });
+}
+
+// ═══ OpenAI ═══
+
+async function streamOpenAI(
+  apiKey: string, model: string,
+  messages: { role: string; content: string }[], system: string
+) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: "system", content: system }, ...messages.map((m) => ({ role: m.role, content: m.content }))],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    return Response.json({ error: `OpenAI: ${res.status} ${err}` }, { status: res.status });
+  }
+
+  return transformSSE(res, (parsed) => parsed.choices?.[0]?.delta?.content ?? null);
+}
+
+// ═══ Gemini ═══
+
+async function streamGemini(
+  apiKey: string, model: string,
+  messages: { role: string; content: string }[], system: string
+) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: messages.map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: { maxOutputTokens: 2048 },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    return Response.json({ error: `Gemini: ${res.status} ${err}` }, { status: res.status });
+  }
+
+  return transformSSE(res, (parsed) => parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? null);
+}
+
+// ═══ Shared SSE transform ═══
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function transformSSE(
+  upstream: Response,
+  extractText: (parsed: any) => string | null
+) {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      const reader = upstream.body!.getReader();
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]" || !data) continue;
+            try {
+              const parsed = JSON.parse(data);
+              const text = extractText(parsed);
+              if (text) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+            } catch { /* skip */ }
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      } catch (e) {
+        controller.error(e);
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+  });
 }
