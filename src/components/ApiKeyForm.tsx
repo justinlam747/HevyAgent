@@ -4,9 +4,14 @@ import { useState } from "react";
 import Body from "react-muscle-highlighter";
 import Logo from "./Logo";
 import { ArrowRight } from "lucide-react";
-import NiceAvatar, { genConfig } from "react-nice-avatar";
+import NiceAvatar from "react-nice-avatar";
 
-const USER_AVATAR_CONFIG = genConfig({ sex: "man", hairStyle: "thick", shirtStyle: "polo", bgColor: "#6366f1" });
+const USER_AVATAR_CONFIG = {
+  sex: "man" as const, faceColor: "#F9C9B6", earSize: "small" as const, eyeStyle: "smile" as const,
+  noseStyle: "long" as const, mouthStyle: "smile" as const, shirtStyle: "polo" as const,
+  glassesStyle: "none" as const, hairColor: "#000", hairStyle: "thick" as const,
+  hatStyle: "none" as const, hatColor: "#000", shirtColor: "#6366f1", bgColor: "#6366f1",
+};
 
 /* ════════════════════════════════════════
    Data

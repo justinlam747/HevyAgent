@@ -269,32 +269,62 @@ body {
 }
 
 /* ═══════════════════════════════════
-   Cards (Hevy-style)
+   Cards / Tiles
    ═══════════════════════════════════ */
 
 .card {
   background: rgba(22, 22, 22, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.tile {
+  background: rgba(22, 22, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.tile:hover {
+  border-color: rgba(79, 156, 247, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+.tile-head {
+  padding: 20px 22px 14px;
+}
+.tile-head-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+}
+.tile-head-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.tile-body {
+  padding: 14px 22px 20px;
+  background: rgba(255, 255, 255, 0.015);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .card-interactive {
   background: rgba(22, 22, 22, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.15s ease;
+  border-radius: 20px;
+  padding: 22px;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
-
 .card-interactive:hover {
-  background: rgba(28, 28, 28, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(79, 156, 247, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* ═══════════════════════════════════
@@ -303,28 +333,40 @@ body {
 
 .workout-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 
 .workout-tile {
   display: flex;
-  align-items: stretch;
-  background: rgba(22, 22, 22, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  flex-direction: column;
+  background: rgba(22, 22, 22, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 16px;
-  gap: 16px;
+  border-radius: 20px;
+  overflow: hidden;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
   width: 100%;
 }
 .workout-tile:hover {
-  background: rgba(28, 28, 28, 0.7);
-  border-color: rgba(79, 156, 247, 0.3);
+  border-color: rgba(79, 156, 247, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.workout-tile-head {
+  padding: 20px 22px 14px;
+}
+
+.workout-tile-body {
+  padding: 14px 22px 18px;
+  background: rgba(255, 255, 255, 0.015);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .workout-tile-map {
@@ -332,7 +374,6 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 72px;
 }
 
 .workout-tile-info {
@@ -351,9 +392,9 @@ body {
 }
 
 .workout-tile-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -862,6 +903,17 @@ body {
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+/* "Build My Plan" card spans full width on top */
+.chat-presets .preset-plan {
+  grid-column: 1 / -1;
+  border-color: rgba(79, 156, 247, 0.15);
+  background: rgba(79, 156, 247, 0.04);
+}
+.chat-presets .preset-plan:hover {
+  border-color: rgba(79, 156, 247, 0.35);
+  background: rgba(79, 156, 247, 0.08);
 }
 
 /* ─── Active Conversation ─── */

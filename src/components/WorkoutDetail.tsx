@@ -3,6 +3,8 @@
 import type { Workout, ExerciseTemplate } from "@/lib/hevy";
 import { workoutVolume, workoutDuration, workoutSets, getPrimaryMuscles } from "@/lib/insights";
 import { formatDate, formatWeight, formatVolume, formatDuration, capitalize } from "@/lib/utils";
+import { ArrowLeft, Dumbbell, Clock, Layers } from "lucide-react";
+import MuscleMap from "./MuscleMap";
 
 export default function WorkoutDetail({
   workout,
@@ -19,96 +21,107 @@ export default function WorkoutDetail({
   const muscles = getPrimaryMuscles(workout, templates);
 
   return (
-    <div className="space-y-4">
-      <button
-        onClick={onBack}
-        className="text-sm text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-      >
-        &larr; Back
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, fontWeight: 500, padding: 0, marginBottom: 20 }}>
+        <ArrowLeft size={16} /> Back
       </button>
 
-      <div>
-        <h2 className="text-xl font-semibold">{workout.title}</h2>
-        <p className="text-sm text-[var(--text-muted)]">{formatDate(workout.start_time)}</p>
-        {workout.description && (
-          <p className="text-sm text-[var(--text-muted)] mt-1">{workout.description}</p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card text-center">
-          <div className="text-lg font-semibold">{formatVolume(volume)}</div>
-          <div className="text-xs text-[var(--text-muted)]">Volume</div>
+      {/* Header tile */}
+      <div className="tile" style={{ cursor: "default", marginBottom: 16 }}>
+        <div className="tile-head" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <MuscleMap activeMuscles={muscles} size={64} />
+          <div>
+            <p className="tile-head-title" style={{ fontSize: 22 }}>{workout.title}</p>
+            <p className="tile-head-sub" style={{ fontSize: 13 }}>{formatDate(workout.start_time)}</p>
+            {workout.description && <p className="tile-head-sub" style={{ marginTop: 4 }}>{workout.description}</p>}
+          </div>
         </div>
-        <div className="card text-center">
-          <div className="text-lg font-semibold">{formatDuration(duration)}</div>
-          <div className="text-xs text-[var(--text-muted)]">Duration</div>
-        </div>
-        <div className="card text-center">
-          <div className="text-lg font-semibold">{sets}</div>
-          <div className="text-xs text-[var(--text-muted)]">Sets</div>
-        </div>
-      </div>
-
-      {muscles.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {muscles.map((m) => (
-            <span
-              key={m}
-              className="px-2 py-0.5 text-xs rounded-full bg-[var(--bg-hover)] text-[var(--text-muted)]"
-            >
-              {capitalize(m)}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="space-y-3">
-        {workout.exercises.map((ex) => (
-          <div key={ex.index} className="card space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">{ex.title}</h3>
-              <span className="text-xs text-[var(--text-muted)]">
-                {ex.sets.filter((s) => s.type !== "warmup").length} sets
-              </span>
+        <div className="tile-body">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, textAlign: "center" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+                <Dumbbell size={14} style={{ color: "var(--accent)" }} />
+              </div>
+              <p style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{formatVolume(volume)}</p>
+              <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Volume</p>
             </div>
-            {ex.notes && (
-              <p className="text-xs text-[var(--text-muted)]">{ex.notes}</p>
-            )}
-            <div className="space-y-1">
-              {ex.sets.map((s) => (
-                <div
-                  key={s.index}
-                  className="flex items-center gap-3 text-xs"
-                >
-                  <span className="w-6 text-[var(--text-muted)]">
-                    {s.type === "warmup" ? "W" : s.index + 1}
-                  </span>
-                  {s.weight_kg !== null && (
-                    <span>{formatWeight(s.weight_kg)}</span>
-                  )}
-                  {s.reps !== null && (
-                    <span className="text-[var(--text-muted)]">&times; {s.reps}</span>
-                  )}
-                  {s.duration_seconds !== null && (
-                    <span>{s.duration_seconds}s</span>
-                  )}
-                  {s.rpe !== null && (
-                    <span className="text-[var(--orange)]">RPE {s.rpe}</span>
-                  )}
-                  {s.type === "dropset" && (
-                    <span className="text-[var(--red)] text-[10px]">DROP</span>
-                  )}
-                  {s.type === "failure" && (
-                    <span className="text-[var(--red)] text-[10px]">FAIL</span>
-                  )}
-                </div>
-              ))}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+                <Clock size={14} style={{ color: "var(--accent)" }} />
+              </div>
+              <p style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{formatDuration(duration)}</p>
+              <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Duration</p>
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+                <Layers size={14} style={{ color: "var(--accent)" }} />
+              </div>
+              <p style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{sets}</p>
+              <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Sets</p>
             </div>
           </div>
-        ))}
+          {muscles.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+              {muscles.map((m) => (
+                <span key={m} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 8, background: "rgba(79,156,247,0.08)", color: "var(--accent)", fontWeight: 600 }}>
+                  {capitalize(m)}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Exercise tiles */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {workout.exercises.map((ex) => {
+          const tmpl = templates.get(ex.exercise_template_id);
+          const workingSets = ex.sets.filter((s) => s.type !== "warmup");
+          return (
+            <div key={ex.index} className="tile" style={{ cursor: "default" }}>
+              <div className="tile-head">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <p className="tile-head-title">{ex.title}</p>
+                    <p className="tile-head-sub">
+                      {tmpl ? capitalize(tmpl.primary_muscle_group) : ""} &middot; {workingSets.length} working sets
+                    </p>
+                  </div>
+                </div>
+                {ex.notes && <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, fontStyle: "italic" }}>{ex.notes}</p>}
+              </div>
+              <div className="tile-body">
+                {/* Set header */}
+                <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 1fr 60px", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, textAlign: "center" }}>SET</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>WEIGHT</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>REPS</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, textAlign: "right" }}>TYPE</span>
+                </div>
+                {ex.sets.map((s) => (
+                  <div key={s.index} style={{ display: "grid", gridTemplateColumns: "40px 1fr 1fr 60px", gap: 8, padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.03)", alignItems: "center" }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: s.type === "warmup" ? "var(--text-muted)" : "var(--accent)", textAlign: "center" }}>
+                      {s.type === "warmup" ? "W" : s.index + 1}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>
+                      {s.weight_kg !== null ? formatWeight(s.weight_kg) : "—"}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>
+                      {s.reps !== null ? s.reps : s.duration_seconds !== null ? `${s.duration_seconds}s` : "—"}
+                    </span>
+                    <div style={{ textAlign: "right", display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                      {s.type === "warmup" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#f97316", fontWeight: 600 }}>WARM</span>}
+                      {s.type === "failure" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(239,68,68,0.1)", color: "#ef4444", fontWeight: 600 }}>FAIL</span>}
+                      {s.type === "dropset" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(168,85,247,0.1)", color: "#a855f7", fontWeight: 600 }}>DROP</span>}
+                      {s.rpe !== null && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#fb923c", fontWeight: 600 }}>RPE {s.rpe}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
-

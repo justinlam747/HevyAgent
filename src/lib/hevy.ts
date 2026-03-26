@@ -144,3 +144,52 @@ export async function fetchWorkoutCount(apiKey: string): Promise<number> {
   const data = await hevyFetch<{ workout_count: number }>("/workouts/count", apiKey);
   return data.workout_count;
 }
+
+// Routines (saved workout templates in the Hevy app)
+export interface RoutineSet {
+  index: number;
+  type: string;
+  weight_kg: number | null;
+  reps: number | null;
+  distance_meters: number | null;
+  duration_seconds: number | null;
+  rpe: number | null;
+}
+
+export interface RoutineExercise {
+  index: number;
+  title: string;
+  rest_seconds: string | null;
+  notes: string;
+  exercise_template_id: string;
+  supersets_id: number | null;
+  sets: RoutineSet[];
+}
+
+export interface Routine {
+  id: string;
+  title: string;
+  folder_id: number | null;
+  updated_at: string;
+  created_at: string;
+  exercises: RoutineExercise[];
+}
+
+export async function fetchAllRoutines(apiKey: string): Promise<Routine[]> {
+  const all: Routine[] = [];
+  let page = 1;
+  let pageCount = 1;
+
+  while (page <= pageCount) {
+    const data = await hevyFetch<PaginatedResponse<Routine>>(
+      "/routines",
+      apiKey,
+      { page: String(page), page_size: "10" }
+    );
+    all.push(...extractItems<Routine>(data));
+    pageCount = data.page_count;
+    page++;
+  }
+
+  return all;
+}

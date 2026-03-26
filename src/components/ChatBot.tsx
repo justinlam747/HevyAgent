@@ -8,27 +8,58 @@ import {
   Trophy,
   Dumbbell,
   Zap,
+  Target,
   Plus,
   Search,
   PanelLeft,
   X,
   SendHorizontal,
+  Key,
+  ExternalLink,
 } from "lucide-react";
 import type { Workout, ExerciseTemplate } from "@/lib/hevy";
 import Logo from "./Logo";
-import NiceAvatar, { genConfig } from "react-nice-avatar";
-import { ClaudeLogo, OpenAILogo, GeminiLogo } from "./ProviderLogos";
+import NiceAvatar from "react-nice-avatar";
+import { ClaudeLogo, OpenAILogo, GeminiLogo, PROVIDER_COLORS } from "./ProviderLogos";
 import { buildWorkoutContext, CHEVY_SYSTEM_PROMPT } from "@/lib/context";
 import type { Provider } from "@/lib/providers";
 import { PROVIDERS, getSavedProvider, saveProvider } from "@/lib/providers";
 
-const USER_AVATAR_CONFIG = genConfig({ sex: "man", hairStyle: "thick", shirtStyle: "polo", bgColor: "#6366f1" });
+const USER_AVATAR_CONFIG = {
+  sex: "man" as const, faceColor: "#F9C9B6", earSize: "small" as const, eyeStyle: "smile" as const,
+  noseStyle: "long" as const, mouthStyle: "smile" as const, shirtStyle: "polo" as const,
+  glassesStyle: "none" as const, hairColor: "#000", hairStyle: "thick" as const,
+  hatStyle: "none" as const, hatColor: "#000", shirtColor: "#6366f1", bgColor: "#6366f1",
+};
 
 const PROVIDER_ICONS: Record<Provider, React.ReactNode> = {
   claude: <ClaudeLogo size={16} />,
   openai: <OpenAILogo size={16} />,
   gemini: <GeminiLogo size={16} />,
 };
+
+const PROVIDER_ICONS_LG: Record<Provider, React.ReactNode> = {
+  claude: <ClaudeLogo size={28} />,
+  openai: <OpenAILogo size={28} />,
+  gemini: <GeminiLogo size={28} />,
+};
+
+const PROVIDER_META: Record<Provider, { tagline: string; keyUrl: string }> = {
+  claude: {
+    tagline: "Anthropic's most capable model",
+    keyUrl: "https://console.anthropic.com/settings/keys",
+  },
+  openai: {
+    tagline: "OpenAI's flagship model",
+    keyUrl: "https://platform.openai.com/api-keys",
+  },
+  gemini: {
+    tagline: "Google's multimodal AI",
+    keyUrl: "https://aistudio.google.com/apikey",
+  },
+};
+
+type ConvoMode = "chat" | "plan";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,17 +71,78 @@ interface Conversation {
   id: string;
   title: string;
   messages: Message[];
+  mode: ConvoMode;
   createdAt: number;
   updatedAt: number;
 }
 
 const CONVERSATIONS_KEY = "hevy_conversations";
 
-const PRESET_QUESTIONS = [
-  { icon: BarChart3, title: "Analyze Training", desc: "Break down my volume, frequency, and muscle balance" },
-  { icon: Trophy, title: "Find My PRs", desc: "Show my personal records across all exercises" },
-  { icon: Dumbbell, title: "Build a Workout", desc: "Create a session based on my training history" },
-  { icon: Zap, title: "Check Fatigue", desc: "Analyze my recovery and overtraining risk" },
+const PLAN_SYSTEM_PROMPT = `You are Chevy, a world-class personal trainer and nutrition coach. Your job is to learn about the user and build them a completely personalized workout and lifestyle plan.
+
+## Your approach
+
+**Phase 1 — Learn about them (2-4 messages)**
+After the user shares their initial info, ask focused follow-up questions about gaps. Don't ask everything at once — pick the 2-3 most important unknowns. Be conversational, not clinical.
+
+Topics to understand (ask naturally, not as a checklist):
+- Primary goal (build muscle, lose fat, get stronger, sport-specific, general health)
+- Training experience level and how long they've been lifting
+- How many days/week they can train, and how long per session
+- Equipment access (full gym, home gym, dumbbells only, bodyweight)
+- Any injuries, limitations, or exercises they can't do
+- Diet situation (do they cook, eat out, meal prep, dietary restrictions, rough calorie awareness)
+- Sleep habits and stress level
+- What they've tried before and what worked/didn't
+- Current body comp goals (if relevant)
+- Any specific exercises or muscle groups they care about most
+
+**Phase 2 — Generate the plan**
+Once you have enough info (don't over-ask), generate a COMPLETE plan with:
+
+### The Plan Format
+
+**WEEKLY SCHEDULE**
+- Day-by-day breakdown (e.g., Mon: Upper, Tue: Rest, Wed: Lower...)
+- Exactly which exercises, sets, reps, and rest periods
+- Use weights in lbs — reference their actual PRs/history when available
+- Include warm-up suggestions
+
+**PROGRESSION**
+- How to increase weight/reps week to week
+- When to deload
+- How to track progress
+
+**NUTRITION GUIDELINES** (practical, not preachy)
+- Rough daily calorie and protein target based on their goal
+- Simple meal ideas that fit their lifestyle (eating out? give restaurant-friendly options)
+- Meal timing around workouts if relevant
+- Hydration
+
+**RECOVERY**
+- Rest day recommendations
+- Sleep targets
+- Stretching/mobility if needed
+
+**REALISTIC TIMELINE**
+- What results to expect in 4, 8, and 12 weeks
+- How to adjust the plan as they progress
+
+## Rules
+- Be direct and specific — no generic advice. Every recommendation should be tailored.
+- Use their actual workout data when available to set starting weights.
+- If they eat out a lot, don't tell them to meal prep everything — give them practical options.
+- Keep it conversational and encouraging, not overwhelming.
+- Use markdown formatting with clear headers and tables.
+- When you have enough info, say "I've got everything I need — here's your plan:" and deliver it.
+- If user data is available, reference their PRs, frequency, and exercise selection.`;
+
+const PRESET_QUESTIONS: { icon: typeof BarChart3; title: string; desc: string; mode: ConvoMode }[] = [
+  { icon: Target, title: "Build My Plan", desc: "I want to build a personalized workout and nutrition plan based on my goals", mode: "plan" },
+  { icon: BarChart3, title: "Analyze Training", desc: "Break down my volume, frequency, and muscle balance", mode: "chat" },
+  { icon: Trophy, title: "Find My PRs", desc: "Show my personal records across all exercises", mode: "chat" },
+  { icon: Dumbbell, title: "Build a Workout", desc: "Create a session based on my training history", mode: "chat" },
+  { icon: Zap, title: "Check Fatigue", desc: "Analyze my recovery and overtraining risk", mode: "chat" },
 ];
 
 function generateId(): string {
@@ -115,7 +207,8 @@ export default function ChatBot({
     if (stored) {
       try {
         const parsed: Conversation[] = JSON.parse(stored);
-        setConversations(parsed.sort((a, b) => b.updatedAt - a.updatedAt));
+        const migrated = parsed.map((c) => ({ ...c, mode: c.mode ?? "chat" as ConvoMode }));
+        setConversations(migrated.sort((a, b) => b.updatedAt - a.updatedAt));
       } catch { /* ignore */ }
     }
     const saved = getSavedProvider();
@@ -139,7 +232,6 @@ export default function ChatBot({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streamingText]);
 
-  // Build workout context for system prompt
   const workoutContext = useMemo(
     () => buildWorkoutContext(workouts, templates),
     [workouts, templates]
@@ -178,21 +270,22 @@ export default function ChatBot({
     [activeId]
   );
 
-  const send = async (text: string) => {
+  const send = async (text: string, mode?: ConvoMode) => {
     if (!text.trim() || loading) return;
     const userMsg: Message = { role: "user", content: text.trim(), timestamp: Date.now() };
 
     let convoId = activeId;
+    let convoMode: ConvoMode = mode ?? activeConvo?.mode ?? "chat";
     let newMessages: Message[];
 
     if (!convoId) {
-      // Create new conversation
       const id = generateId();
-      const title = text.trim().slice(0, 60);
+      const title = convoMode === "plan" ? "My Training Plan" : text.trim().slice(0, 60);
       const convo: Conversation = {
         id,
         title,
         messages: [userMsg],
+        mode: convoMode,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
@@ -201,6 +294,7 @@ export default function ChatBot({
       convoId = id;
       newMessages = [userMsg];
     } else {
+      convoMode = activeConvo?.mode ?? "chat";
       newMessages = [...messages, userMsg];
       updateConversation(convoId, (c) => ({
         ...c,
@@ -214,7 +308,8 @@ export default function ChatBot({
     setStreamingText("");
 
     try {
-      const systemPrompt = CHEVY_SYSTEM_PROMPT + workoutContext;
+      const basePrompt = convoMode === "plan" ? PLAN_SYSTEM_PROMPT : CHEVY_SYSTEM_PROMPT;
+      const systemPrompt = basePrompt + workoutContext;
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -340,7 +435,10 @@ export default function ChatBot({
                   onClick={() => setActiveId(c.id)}
                   className={`chat-sidebar-item ${c.id === activeId ? "active" : ""}`}
                 >
-                  <span className="chat-sidebar-item-title">{c.title}</span>
+                  <span className="chat-sidebar-item-title">
+                    {c.mode === "plan" && <Target size={11} className="inline mr-1 opacity-50" />}
+                    {c.title}
+                  </span>
                   <button
                     className="chat-sidebar-item-delete"
                     onClick={(e) => {
@@ -390,10 +488,9 @@ export default function ChatBot({
       {/* Main Chat Area */}
       <div className={`chat-main ${sidebarOpen ? "with-sidebar" : "full"}`}>
         {isWelcome ? (
-          /* ═══ Welcome Screen ═══ */
+          /* Welcome Screen */
           <div className="chat-welcome">
             <div className="chat-welcome-inner">
-              {/* Chevy avatar */}
               <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{
                 background: "linear-gradient(135deg, rgba(79,156,247,0.15), rgba(79,156,247,0.05))",
                 boxShadow: "0 4px 20px rgba(79,156,247,0.15), inset 0 1px 0 rgba(255,255,255,0.06)",
@@ -404,7 +501,6 @@ export default function ChatBot({
               <p className="chat-welcome-sub">Chevy</p>
               <h2 className="chat-welcome-title">How can I help with your training?</h2>
 
-              {/* Input */}
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
                 className="chat-welcome-input"
@@ -425,14 +521,13 @@ export default function ChatBot({
                 </button>
               </form>
 
-              {/* Preset Cards */}
               <div className="chat-presets">
                 {PRESET_QUESTIONS.map((p) => (
                   <button
                     key={p.title}
-                    onClick={() => send(p.desc)}
+                    onClick={() => send(p.desc, p.mode)}
                     disabled={loading || !isReady}
-                    className="chat-preset-card"
+                    className={`chat-preset-card ${p.mode === "plan" ? "preset-plan" : ""}`}
                   >
                     <span className="chat-preset-icon"><p.icon size={18} /></span>
                     <span className="chat-preset-title">{p.title}</span>
@@ -443,17 +538,18 @@ export default function ChatBot({
             </div>
           </div>
         ) : (
-          /* ═══ Active Conversation ═══ */
+          /* Active Conversation */
           <div className="chat-convo">
-            {/* Conversation Header */}
             <div className="chat-convo-header">
-              <h3>{activeConvo?.title}</h3>
+              <h3>
+                {activeConvo?.mode === "plan" && <Target size={14} className="inline mr-1.5 opacity-60" />}
+                {activeConvo?.title}
+              </h3>
               <button onClick={newChat} className="chat-convo-new" title="New chat">
                 <Plus size={16} />
               </button>
             </div>
 
-            {/* Messages */}
             <div ref={scrollRef} className="chat-messages">
               {messages.map((m, i) => (
                 <div key={i} className={`chat-msg ${m.role}`}>
@@ -519,7 +615,6 @@ export default function ChatBot({
               )}
             </div>
 
-            {/* Input Bar */}
             <div className="chat-input-bar">
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
@@ -529,7 +624,7 @@ export default function ChatBot({
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about your workouts..."
+                  placeholder={activeConvo?.mode === "plan" ? "Tell me about your goals, schedule, diet..." : "Ask about your workouts..."}
                   disabled={loading || !isReady}
                 />
                 <button
@@ -547,68 +642,111 @@ export default function ChatBot({
 
       {/* Provider Setup Modal */}
       {showProviderSetup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl p-6 space-y-5" style={{
-            background: "rgba(17, 17, 17, 0.95)",
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{
+            background: "rgba(17, 17, 17, 0.97)",
             border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
           }}>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">Connect AI Provider</h3>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Choose your AI provider and enter your API key. Keys are stored locally in your browser.</p>
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto" style={{
+                background: "linear-gradient(135deg, rgba(79,156,247,0.15), rgba(79,156,247,0.05))",
+                boxShadow: "0 4px 20px rgba(79,156,247,0.15)",
+              }}>
+                <Logo size={24} />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Set up Chevy</h3>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-xs mx-auto">
+                Bring your own API key to power your workout AI. Pick a provider below — your key stays in your browser.
+              </p>
             </div>
 
-            {/* Provider selector */}
-            <div className="flex gap-2">
-              {(Object.keys(PROVIDERS) as Provider[]).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setProvider(p)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all"
-                  style={{
-                    background: provider === p ? "rgba(79,156,247,0.12)" : "rgba(255,255,255,0.03)",
-                    border: provider === p ? "1px solid rgba(79,156,247,0.3)" : "1px solid rgba(255,255,255,0.06)",
-                  }}
+            <div className="space-y-2">
+              {(Object.keys(PROVIDERS) as Provider[]).map((p) => {
+                const selected = provider === p;
+                const colors = PROVIDER_COLORS[p];
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setProvider(p)}
+                    className="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-left transition-all"
+                    style={{
+                      background: selected ? colors.bg : "rgba(255,255,255,0.02)",
+                      border: selected ? `1px solid ${colors.border}` : "1px solid rgba(255,255,255,0.05)",
+                      boxShadow: selected ? `0 0 20px ${colors.glow}` : "none",
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{
+                      background: selected ? colors.bg : "rgba(255,255,255,0.04)",
+                      color: selected ? colors.primary : "var(--text-muted)",
+                    }}>
+                      {PROVIDER_ICONS_LG[p]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium" style={{ color: selected ? colors.primary : "var(--text-primary)" }}>
+                          {PROVIDERS[p].name}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{
+                          background: "rgba(255,255,255,0.05)",
+                          color: "var(--text-muted)",
+                        }}>
+                          {PROVIDERS[p].defaultModel}
+                        </span>
+                      </div>
+                      <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                        {PROVIDER_META[p].tagline}
+                      </p>
+                    </div>
+                    <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0" style={{
+                      borderColor: selected ? colors.primary : "rgba(255,255,255,0.15)",
+                    }}>
+                      {selected && (
+                        <div className="w-2 h-2 rounded-full" style={{ background: colors.primary }} />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+                  <Key size={12} />
+                  API Key
+                </label>
+                <a
+                  href={PROVIDER_META[provider].keyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] flex items-center gap-1 hover:underline"
+                  style={{ color: PROVIDER_COLORS[provider].primary }}
                 >
-                  {PROVIDER_ICONS[p]}
-                  <span className={provider === p ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}>
-                    {PROVIDERS[p].name}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* API key input */}
-            <div className="space-y-1.5">
-              <label className="text-xs text-[var(--text-secondary)]">
-                {PROVIDERS[provider].name} API Key
-              </label>
+                  Get a key <ExternalLink size={9} />
+                </a>
+              </div>
               <input
                 type="password"
                 value={providerKey}
                 onChange={(e) => setProviderKey(e.target.value)}
                 placeholder={PROVIDERS[provider].placeholder}
-                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
                 style={{
                   background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: `1px solid rgba(255,255,255,0.08)`,
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "rgba(79,156,247,0.4)"}
+                onFocus={(e) => e.currentTarget.style.borderColor = PROVIDER_COLORS[provider].border}
                 onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+                onKeyDown={(e) => { if (e.key === "Enter" && providerKey.trim()) handleSaveProvider(); }}
               />
             </div>
 
-            {/* Model info */}
-            <p className="text-[10px] text-[var(--text-muted)]">
-              Model: {PROVIDERS[provider].defaultModel}
-            </p>
-
-            {/* Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-1">
               {providerKey && (
                 <button
                   onClick={() => setShowProviderSetup(false)}
-                  className="flex-1 py-2.5 rounded-xl text-xs text-[var(--text-muted)] transition-all"
+                  className="flex-1 py-2.5 rounded-xl text-xs text-[var(--text-muted)] transition-all hover:bg-[rgba(255,255,255,0.04)]"
                   style={{ border: "1px solid rgba(255,255,255,0.06)" }}
                 >
                   Cancel
@@ -617,13 +755,13 @@ export default function ChatBot({
               <button
                 onClick={handleSaveProvider}
                 disabled={!providerKey.trim()}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium text-white transition-all disabled:opacity-20"
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-all disabled:opacity-20"
                 style={{
-                  background: "linear-gradient(180deg, #5aa3f9 0%, #3b7dd8 50%, #2e6bc0 100%)",
-                  boxShadow: "0 4px 12px rgba(79,156,247,0.3), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.15)",
+                  background: `linear-gradient(180deg, ${PROVIDER_COLORS[provider].primary}dd 0%, ${PROVIDER_COLORS[provider].primary} 100%)`,
+                  boxShadow: `0 4px 16px ${PROVIDER_COLORS[provider].glow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
                 }}
               >
-                Save & Connect
+                Connect {PROVIDERS[provider].name}
               </button>
             </div>
           </div>

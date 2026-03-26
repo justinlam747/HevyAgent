@@ -3,21 +3,9 @@
 import type { ReactNode } from "react";
 import Logo from "./Logo";
 
-export type NavItem = "calendar" | "workouts" | "insights" | "agent";
+export type NavItem = "workouts" | "insights" | "builder" | "agent";
 
 const NAV_ITEMS: { key: NavItem; label: string; icon: ReactNode }[] = [
-  {
-    key: "calendar",
-    label: "Calendar",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="4" width="16" height="14" rx="2" />
-        <path d="M2 8h16" />
-        <path d="M6 2v4" />
-        <path d="M14 2v4" />
-      </svg>
-    ),
-  },
   {
     key: "workouts",
     label: "Workouts",
@@ -43,6 +31,17 @@ const NAV_ITEMS: { key: NavItem; label: string; icon: ReactNode }[] = [
     ),
   },
   {
+    key: "builder",
+    label: "Builder",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2l4 4-9 9H5v-4z" />
+        <path d="M11.5 4.5l4 4" />
+        <path d="M2 18h16" />
+      </svg>
+    ),
+  },
+  {
     key: "agent",
     label: "Chevy",
     icon: (
@@ -63,8 +62,8 @@ export default function Sidebar({
   syncing,
   workoutCount,
 }: {
-  active: NavItem;
-  onNavigate: (item: NavItem) => void;
+  active: string;
+  onNavigate: (item: string) => void;
   onSync: () => void;
   onDisconnect: () => void;
   syncing: boolean;
@@ -72,13 +71,10 @@ export default function Sidebar({
 }) {
   return (
     <aside className="sidebar">
-      {/* Logo */}
       <div className="sidebar-logo">
         <Logo size={28} />
         <span className="sidebar-logo-text">HEVY<span className="sidebar-logo-dim">AGENT</span></span>
       </div>
-
-      {/* Navigation */}
       <nav className="sidebar-nav">
         {NAV_ITEMS.map((item) => (
           <button
@@ -91,17 +87,11 @@ export default function Sidebar({
           </button>
         ))}
       </nav>
-
-      {/* Bottom section */}
       <div className="sidebar-footer">
         <div className="sidebar-stats">
           <span className="text-xs text-[var(--text-muted)]">{workoutCount} workouts</span>
         </div>
-        <button
-          onClick={onSync}
-          disabled={syncing}
-          className="sidebar-footer-btn"
-        >
+        <button onClick={onSync} disabled={syncing} className="sidebar-footer-btn">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={syncing ? "animate-spin" : ""}>
             <path d="M2 8a6 6 0 0110.5-4" />
             <path d="M14 8a6 6 0 01-10.5 4" />
@@ -110,10 +100,7 @@ export default function Sidebar({
           </svg>
           <span>{syncing ? "Syncing..." : "Sync"}</span>
         </button>
-        <button
-          onClick={onDisconnect}
-          className="sidebar-footer-btn disconnect"
-        >
+        <button onClick={onDisconnect} className="sidebar-footer-btn disconnect">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3" />
             <polyline points="10,12 14,8 10,4" />
