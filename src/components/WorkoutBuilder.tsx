@@ -195,7 +195,7 @@ export default function WorkoutBuilder({
                 >
                   {/* Top: Title + description */}
                   <div style={{ padding: "22px 24px 16px" }}>
-                    <p style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 4 }}>{r.title}</p>
+                    <p style={{ fontSize: 18, fontWeight: 500, color: "#fff", marginBottom: 4 }}>{r.title}</p>
                     <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
                       {r.exercises.length} exercises &middot; {muscles.map(capitalize).join(", ")}
                     </p>
@@ -236,13 +236,13 @@ export default function WorkoutBuilder({
               background: "rgba(79,156,247,0.04)", border: "1px dashed rgba(79,156,247,0.2)",
               cursor: "pointer", transition: "all 0.2s",
             }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(79,156,247,0.08)"; e.currentTarget.style.borderColor = "rgba(79,156,247,0.35)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(79,156,247,0.04)"; e.currentTarget.style.borderColor = "rgba(79,156,247,0.2)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(28,28,28,0.7)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}
             >
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(79,156,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Plus size={24} style={{ color: "var(--accent)" }} />
               </div>
-              <p style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Start from scratch</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: "#fff" }}>Start from scratch</p>
               <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>Build a custom workout<br />from your exercise library.</p>
             </button>
           </div>
@@ -270,7 +270,7 @@ export default function WorkoutBuilder({
                 <div key={ex.id} style={{ background: "rgba(22,22,22,0.55)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                     <div>
-                      <p style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{ex.title}</p>
+                      <p style={{ fontSize: 18, fontWeight: 500, color: "#fff" }}>{ex.title}</p>
                       <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
                         {capitalize(ex.primaryMuscle)}
                         {pr && <> &middot; PR {toLbs5(pr.weight)} lbs &times; {pr.reps}</>}
@@ -278,16 +278,16 @@ export default function WorkoutBuilder({
                     </div>
                     <button onClick={() => setExercises((p) => p.filter((e) => e.id !== ex.id))} style={{
                       background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.15)", borderRadius: 10,
-                      cursor: "pointer", padding: "8px 10px", color: "#f87171", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600,
+                      cursor: "pointer", padding: "8px 10px", color: "#f87171", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 500,
                     }}>
                       <Trash2 size={14} /> Remove
                     </button>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "48px 1fr 1fr 36px", gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, textAlign: "center" }}>SET</span>
-                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>LBS</span>
-                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>REPS</span>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500, textAlign: "center" }}>SET</span>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>LBS</span>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>REPS</span>
                     <span />
                   </div>
 
@@ -296,10 +296,10 @@ export default function WorkoutBuilder({
                       <span style={{ fontSize: 16, fontWeight: 800, color: "var(--accent)", textAlign: "center" }}>{si + 1}</span>
                       <input type="number" step={5} value={s.lbs || ""} onChange={(e) => updateSet(ex.id, si, "lbs", Number(e.target.value))}
                         onBlur={(e) => updateSet(ex.id, si, "lbs", Math.round(Number(e.target.value) / 5) * 5)}
-                        style={{ width: "100%", padding: "12px 14px", borderRadius: 12, fontSize: 17, fontWeight: 700, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", outline: "none" }}
+                        style={{ width: "100%", padding: "12px 14px", borderRadius: 12, fontSize: 17, fontWeight: 500, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", outline: "none" }}
                         onFocus={(e) => e.currentTarget.style.borderColor = "rgba(79,156,247,0.4)"} onBlurCapture={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
                       <input type="number" value={s.reps || ""} onChange={(e) => updateSet(ex.id, si, "reps", Number(e.target.value))}
-                        style={{ width: "100%", padding: "12px 14px", borderRadius: 12, fontSize: 17, fontWeight: 700, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", outline: "none" }}
+                        style={{ width: "100%", padding: "12px 14px", borderRadius: 12, fontSize: 17, fontWeight: 500, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", outline: "none" }}
                         onFocus={(e) => e.currentTarget.style.borderColor = "rgba(79,156,247,0.4)"} onBlurCapture={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"} />
                       <button onClick={() => removeSet(ex.id, si)} disabled={ex.sets.length <= 1}
                         style={{ background: "none", border: "none", cursor: ex.sets.length <= 1 ? "default" : "pointer", padding: 6, color: "var(--text-muted)", opacity: ex.sets.length <= 1 ? 0.15 : 0.5 }}>
@@ -310,7 +310,7 @@ export default function WorkoutBuilder({
 
                   <button onClick={() => addSet(ex.id)} style={{
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
-                    padding: 12, marginTop: 8, borderRadius: 12, fontSize: 14, fontWeight: 600,
+                    padding: 12, marginTop: 8, borderRadius: 12, fontSize: 14, fontWeight: 500,
                     color: "var(--text-muted)", background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", cursor: "pointer",
                   }}>
                     <Plus size={15} /> Add Set
@@ -321,7 +321,7 @@ export default function WorkoutBuilder({
 
             <button onClick={() => setShowPicker(true)} style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
-              padding: 18, borderRadius: 16, fontSize: 16, fontWeight: 700,
+              padding: 18, borderRadius: 16, fontSize: 16, fontWeight: 500,
               color: "var(--accent)", background: "rgba(79,156,247,0.06)", border: "1px dashed rgba(79,156,247,0.25)", cursor: "pointer",
             }}>
               <Plus size={18} /> Add Exercise
@@ -331,7 +331,7 @@ export default function WorkoutBuilder({
           {/* RIGHT SIDEBAR */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
             <div style={{ background: "rgba(22,22,22,0.55)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24 }}>
-              <p style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 16 }}>Summary</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: "#fff", marginBottom: 16 }}>Summary</p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
                 <MuscleMap activeMuscles={activeMuscles} size={150} />
               </div>
@@ -343,7 +343,7 @@ export default function WorkoutBuilder({
               {activeMuscles.length > 0 && (
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {activeMuscles.map((m) => (
-                    <span key={m} style={{ fontSize: 13, padding: "5px 12px", borderRadius: 8, background: "rgba(79,156,247,0.1)", color: "var(--accent)", fontWeight: 600 }}>{capitalize(m)}</span>
+                    <span key={m} style={{ fontSize: 13, padding: "5px 12px", borderRadius: 8, background: "transparent", color: "var(--accent)", fontWeight: 500, border: "1px solid rgba(79,156,247,0.2)", boxShadow: "0 1px 4px rgba(79,156,247,0.08)" }}>{capitalize(m)}</span>
                   ))}
                 </div>
               )}
@@ -352,7 +352,7 @@ export default function WorkoutBuilder({
             <div style={{ background: "rgba(22,22,22,0.55)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <Sparkles size={16} style={{ color: "var(--accent)" }} />
-                <p style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>AI Coach</p>
+                <p style={{ fontSize: 16, fontWeight: 500, color: "#fff" }}>AI Coach</p>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <AiBtn label="Analyze" desc="Check balance & volume" onClick={() => callAI("analyze")} loading={aiLoading && aiMode === "analyze"} disabled={!exercises.length || aiLoading} />
@@ -397,7 +397,7 @@ export default function WorkoutBuilder({
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{tmpl.title}</p>
+                      <p style={{ fontSize: 15, fontWeight: 500, color: "#fff" }}>{tmpl.title}</p>
                       <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
                         {capitalize(tmpl.primary_muscle_group)}
                         {freq > 0 && <> &middot; {freq}x</>}
@@ -427,7 +427,7 @@ function AiBtn({ label, desc, onClick, loading, disabled }: { label: string; des
       opacity: disabled && !loading ? 0.35 : 1, transition: "all 0.15s",
     }}>
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{label}</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "#fff" }}>{label}</p>
         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{desc}</p>
       </div>
       {loading && <div className="typing-dot" />}

@@ -86,7 +86,7 @@ function MonthYearSelector({
         <select
           value={month}
           onChange={(e) => onChange(Number(e.target.value), year)}
-          className="appearance-none text-sm font-semibold text-[var(--text)] bg-[var(--bg-card)] border border-[var(--border)] rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="appearance-none text-sm font-medium text-[var(--text)] bg-[var(--bg-card)] border border-[var(--border)] rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
         >
           {MONTHS.map((name, i) => (
             <option key={i} value={i}>{name}</option>
@@ -98,7 +98,7 @@ function MonthYearSelector({
         <select
           value={year}
           onChange={(e) => onChange(month, Number(e.target.value))}
-          className="appearance-none text-sm font-semibold text-[var(--text)] bg-[var(--bg-card)] border border-[var(--border)] rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="appearance-none text-sm font-medium text-[var(--text)] bg-[var(--bg-card)] border border-[var(--border)] rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
         >
           {years.map((y) => (
             <option key={y} value={y}>{y}</option>
@@ -157,7 +157,7 @@ function SingleMonthView({
                   >
                     <span className={cn(
                       "text-[11px]",
-                      isToday ? "text-[var(--accent)] font-semibold" : "text-[var(--text-muted)]"
+                      isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]"
                     )}>
                       {day}
                     </span>
@@ -189,12 +189,12 @@ function SingleMonthView({
                   {/* Header: title + date + stats */}
                   <div className="flex-shrink-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-[var(--text-primary)] truncate leading-tight">
+                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate leading-tight">
                         {title}
                       </span>
                       <span className={cn(
                         "text-[10px] flex-shrink-0 ml-1",
-                        isToday ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]"
+                        isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]"
                       )}>
                         {day}
                       </span>
@@ -277,7 +277,7 @@ function ContinuousView({
         return (
           <div key={`${md.year}-${md.month}`}>
             <div className="flex items-center justify-between py-1.5 px-1 mb-1">
-              <h3 className="text-sm font-semibold text-[var(--text)]">{md.label}</h3>
+              <h3 className="text-sm font-medium text-[var(--text)]">{md.label}</h3>
               <span className="text-[11px] text-[var(--text-muted)]">{count} workout{count !== 1 ? "s" : ""}</span>
             </div>
 
@@ -302,7 +302,7 @@ function ContinuousView({
                     if (dayWorkouts.length === 0) {
                       return (
                         <div key={cell.dateKey} className="p-1.5">
-                          <span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-semibold" : "text-[var(--text-muted)]")}>{day}</span>
+                          <span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span>
                         </div>
                       );
                     }
@@ -327,8 +327,8 @@ function ContinuousView({
                         {/* Header: title + date + stats */}
                         <div className="flex-shrink-0">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-[var(--text-primary)] truncate leading-tight">{title}</span>
-                            <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]")}>{day}</span>
+                            <span className="text-[11px] font-medium text-[var(--text-primary)] truncate leading-tight">{title}</span>
+                            <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="flex items-center gap-0.5 text-[9px] text-[var(--text-muted)]"><Dumbbell size={9} />{formatVolume(totalVol)}</span>

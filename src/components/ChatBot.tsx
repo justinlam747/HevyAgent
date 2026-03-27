@@ -430,9 +430,12 @@ export default function ChatBot({
             <div key={group.label}>
               <div className="chat-sidebar-label">{group.label}</div>
               {group.items.map((c) => (
-                <button
+                <div
                   key={c.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setActiveId(c.id)}
+                  onKeyDown={(e) => { if (e.key === "Enter") setActiveId(c.id); }}
                   className={`chat-sidebar-item ${c.id === activeId ? "active" : ""}`}
                 >
                   <span className="chat-sidebar-item-title">
@@ -449,7 +452,7 @@ export default function ChatBot({
                   >
                     <X size={12} />
                   </button>
-                </button>
+                </div>
               ))}
             </div>
           ))}
@@ -655,7 +658,7 @@ export default function ChatBot({
               }}>
                 <Logo size={24} />
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Set up Chevy</h3>
+              <h3 className="text-lg font-medium text-[var(--text-primary)]">Set up Chevy</h3>
               <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-xs mx-auto">
                 Bring your own API key to power your workout AI. Pick a provider below — your key stays in your browser.
               </p>

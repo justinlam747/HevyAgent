@@ -78,7 +78,8 @@ export default function SplitTracker({
                   <td key={day.date} className="text-center py-1 px-1">
                     {day.muscles.length > 0 ? (
                       <div
-                        className="inline-block px-1.5 py-0.5 rounded bg-[var(--accent-dim)] text-[var(--accent)] text-[10px] leading-tight cursor-default"
+                        className="inline-block px-1.5 py-0.5 rounded text-[var(--accent)] text-[10px] leading-tight cursor-default border border-[rgba(79,156,247,0.2)]"
+                        style={{ boxShadow: "0 1px 4px rgba(79,156,247,0.08)" }}
                         title={`${day.title}\n${day.muscles.map(capitalize).join(", ")}`}
                       >
                         {day.muscles

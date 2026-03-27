@@ -157,7 +157,7 @@ function ListView({ workouts, templates, onSelect }: {
         <div key={month.key} style={{ marginBottom: 28 }}>
           {/* Month header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 2px" }}>
-            <p style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{month.label}</p>
+            <p style={{ fontSize: 22, fontWeight: 500, color: "#fff" }}>{month.label}</p>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{month.count} workout{month.count !== 1 ? "s" : ""}</span>
           </div>
 
@@ -166,54 +166,55 @@ function ListView({ workouts, templates, onSelect }: {
             <div key={week} style={{ marginBottom: 16 }}>
               {/* Week label */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "0 2px" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>Week {week + 1}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)" }}>Week {week + 1}</span>
                 <span style={{ fontSize: 11, color: "var(--text-muted)", opacity: 0.6 }}>{rangeLabel}</span>
                 <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.04)" }} />
               </div>
 
-              {/* Workout tiles in a horizontal row */}
-              <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
+              {/* Workout tiles grid */}
+              {/* Workout tiles grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 20 }}>
                 {wkWorkouts.map((w) => {
                   const muscles = getPrimaryMuscles(w, templates);
                   const vol = workoutVolume(w);
                   const dur = workoutDuration(w);
                   const sets = workoutSets(w);
-                  const exerciseNames = w.exercises.slice(0, 3).map((e) => e.title);
-                  const moreCount = w.exercises.length - 3;
+                  const exerciseNames = w.exercises.slice(0, 6).map((e) => e.title);
+                  const moreCount = w.exercises.length - 6;
 
                   return (
-                    <button key={w.id} onClick={() => onSelect(w)} className="tile" style={{ minWidth: 260, maxWidth: 320, flex: "0 0 auto", display: "flex", flexDirection: "column" }}>
+                    <button key={w.id} onClick={() => onSelect(w)} className="tile" style={{ display: "flex", flexDirection: "column" }}>
                       <div className="tile-head">
                         <p className="tile-head-title">{w.title}</p>
                         <p className="tile-head-sub">
                           {new Date(w.start_time).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </p>
                         {muscles.length > 0 && (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 8 }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14 }}>
                             {muscles.map((m) => (
-                              <span key={m} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 6, background: "rgba(79,156,247,0.08)", color: "var(--accent)", fontWeight: 600 }}>{capitalize(m)}</span>
+                              <span key={m} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 8, background: "transparent", color: "var(--accent)", fontWeight: 500, border: "1px solid rgba(79,156,247,0.2)", boxShadow: "0 1px 4px rgba(79,156,247,0.08)" }}>{capitalize(m)}</span>
                             ))}
                           </div>
                         )}
                       </div>
-                      <div className="tile-body" style={{ flex: 1, display: "flex", gap: 14, alignItems: "center" }}>
+                      <div className="tile-body" style={{ flex: 1, display: "flex", gap: 22, alignItems: "center" }}>
                         <div style={{ flexShrink: 0 }}>
-                          <MuscleMap activeMuscles={muscles} size={60} />
+                          <MuscleMap activeMuscles={muscles} size={100} />
                         </div>
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                             {exerciseNames.map((name, i) => (
-                              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <div style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--accent)", opacity: 0.5 }} />
-                                <span style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+                              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", opacity: 0.5 }} />
+                                <span style={{ fontSize: 14, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
                               </div>
                             ))}
-                            {moreCount > 0 && <span style={{ fontSize: 10, color: "var(--text-muted)", paddingLeft: 10 }}>+{moreCount} more</span>}
+                            {moreCount > 0 && <span style={{ fontSize: 12, color: "var(--text-muted)", paddingLeft: 13 }}>+{moreCount} more</span>}
                           </div>
-                          <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
-                            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--text-muted)" }}><Dumbbell size={11} />{formatVolume(vol)}</span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--text-muted)" }}><Clock size={11} />{formatDuration(dur)}</span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--text-muted)" }}><Layers size={11} />{sets}</span>
+                          <div style={{ display: "flex", gap: 16, marginTop: "auto", paddingTop: 6 }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}><Dumbbell size={14} />{formatVolume(vol)}</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}><Clock size={14} />{formatDuration(dur)}</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}><Layers size={14} />{sets} sets</span>
                           </div>
                         </div>
                       </div>
@@ -252,7 +253,7 @@ function CalendarGrid({ month, year, workoutsByDate, templates, todayKey, onSele
               const day = cell.date.getDate();
               if (!dw.length) return (
                 <div key={cell.dateKey} className="relative p-1.5">
-                  <span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-semibold" : "text-[var(--text-muted)]")}>{day}</span>
+                  <span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span>
                 </div>
               );
               const muscles = [...new Set(dw.flatMap((w) => getPrimaryMuscles(w, templates)))];
@@ -262,8 +263,8 @@ function CalendarGrid({ month, year, workoutsByDate, templates, todayKey, onSele
                   className={cn("relative flex flex-col p-2 text-left transition-all rounded-lg overflow-hidden hover:brightness-125", isToday && "ring-1 ring-[var(--accent)] ring-inset")}
                   style={{ background: "rgba(22,22,22,0.6)", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-[var(--text-primary)] truncate">{title}</span>
-                    <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]")}>{day}</span>
+                    <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{title}</span>
+                    <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span>
                   </div>
                   <div className="flex-1 flex items-center justify-center mt-1 overflow-hidden">
                     <MuscleMap activeMuscles={muscles} size={60} />
@@ -306,7 +307,7 @@ function TimelineView({ workouts, workoutsByDate, templates, todayKey, onSelect 
         return (
           <div key={`${md.year}-${md.month}`}>
             <div className="flex items-center justify-between py-1.5 px-1 mb-1">
-              <h3 className="text-sm font-semibold text-[var(--text)]">{md.label}</h3>
+              <h3 className="text-sm font-medium text-[var(--text)]">{md.label}</h3>
               <span className="text-[11px] text-[var(--text-muted)]">{count} workout{count !== 1 ? "s" : ""}</span>
             </div>
             <div className="grid grid-cols-7 gap-px mb-px">
@@ -321,7 +322,7 @@ function TimelineView({ workouts, workoutsByDate, templates, todayKey, onSelect 
                     const dw = workoutsByDate.get(cell.dateKey) ?? [];
                     const isToday = cell.dateKey === todayKey;
                     const day = cell.date.getDate();
-                    if (!dw.length) return <div key={cell.dateKey} className="p-1.5"><span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-semibold" : "text-[var(--text-muted)]")}>{day}</span></div>;
+                    if (!dw.length) return <div key={cell.dateKey} className="p-1.5"><span className={cn("text-[11px]", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span></div>;
                     const muscles = [...new Set(dw.flatMap((w) => getPrimaryMuscles(w, templates)))];
                     const title = dw.length === 1 ? dw[0].title : `${dw.length} sessions`;
                     return (
@@ -329,8 +330,8 @@ function TimelineView({ workouts, workoutsByDate, templates, todayKey, onSelect 
                         className={cn("relative flex flex-col p-2 text-left transition-all rounded-lg overflow-hidden hover:brightness-125", isToday && "ring-1 ring-[var(--accent)] ring-inset")}
                         style={{ background: "rgba(22,22,22,0.6)", border: "1px solid rgba(255,255,255,0.05)" }}>
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold text-[var(--text-primary)] truncate">{title}</span>
-                          <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]")}>{day}</span>
+                          <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{title}</span>
+                          <span className={cn("text-[10px] flex-shrink-0 ml-1", isToday ? "text-[var(--accent)] font-medium" : "text-[var(--text-muted)]")}>{day}</span>
                         </div>
                         <div className="flex-1 flex items-center justify-center mt-1 overflow-hidden">
                           <MuscleMap activeMuscles={muscles} size={60} />
@@ -353,7 +354,7 @@ function TimelineView({ workouts, workoutsByDate, templates, todayKey, onSelect 
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 12, fontWeight: 600,
+      display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 12, fontWeight: 500,
       cursor: "pointer", border: "none", transition: "all 0.15s",
       background: active ? "rgba(79,156,247,0.12)" : "transparent",
       color: active ? "var(--accent)" : "var(--text-muted)",
@@ -379,14 +380,14 @@ function MonthYearSelector({ month, year, years, onChange }: { month: number; ye
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{ position: "relative" }}>
         <select value={month} onChange={(e) => onChange(Number(e.target.value), year)}
-          style={{ appearance: "none", fontSize: 13, fontWeight: 600, color: "var(--text)", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, padding: "6px 28px 6px 12px", cursor: "pointer" }}>
+          style={{ appearance: "none", fontSize: 13, fontWeight: 500, color: "var(--text)", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, padding: "6px 28px 6px 12px", cursor: "pointer" }}>
           {MONTHS.map((n, i) => <option key={i} value={i}>{n}</option>)}
         </select>
         <ChevronDown size={12} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
       </div>
       <div style={{ position: "relative" }}>
         <select value={year} onChange={(e) => onChange(month, Number(e.target.value))}
-          style={{ appearance: "none", fontSize: 13, fontWeight: 600, color: "var(--text)", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, padding: "6px 28px 6px 12px", cursor: "pointer" }}>
+          style={{ appearance: "none", fontSize: 13, fontWeight: 500, color: "var(--text)", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, padding: "6px 28px 6px 12px", cursor: "pointer" }}>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
         <ChevronDown size={12} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />

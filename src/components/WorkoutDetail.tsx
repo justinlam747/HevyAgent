@@ -63,7 +63,7 @@ export default function WorkoutDetail({
           {muscles.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
               {muscles.map((m) => (
-                <span key={m} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 8, background: "rgba(79,156,247,0.08)", color: "var(--accent)", fontWeight: 600 }}>
+                <span key={m} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 8, background: "transparent", color: "var(--accent)", fontWeight: 500, border: "1px solid rgba(79,156,247,0.2)", boxShadow: "0 1px 4px rgba(79,156,247,0.08)" }}>
                   {capitalize(m)}
                 </span>
               ))}
@@ -93,27 +93,27 @@ export default function WorkoutDetail({
               <div className="tile-body">
                 {/* Set header */}
                 <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 1fr 60px", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, textAlign: "center" }}>SET</span>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>WEIGHT</span>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>REPS</span>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, textAlign: "right" }}>TYPE</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, textAlign: "center" }}>SET</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>WEIGHT</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>REPS</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, textAlign: "right" }}>TYPE</span>
                 </div>
                 {ex.sets.map((s) => (
                   <div key={s.index} style={{ display: "grid", gridTemplateColumns: "40px 1fr 1fr 60px", gap: 8, padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.03)", alignItems: "center" }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: s.type === "warmup" ? "var(--text-muted)" : "var(--accent)", textAlign: "center" }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: s.type === "warmup" ? "var(--text-muted)" : "var(--accent)", textAlign: "center" }}>
                       {s.type === "warmup" ? "W" : s.index + 1}
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#fff" }}>
                       {s.weight_kg !== null ? formatWeight(s.weight_kg) : "—"}
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#fff" }}>
                       {s.reps !== null ? s.reps : s.duration_seconds !== null ? `${s.duration_seconds}s` : "—"}
                     </span>
                     <div style={{ textAlign: "right", display: "flex", gap: 4, justifyContent: "flex-end" }}>
-                      {s.type === "warmup" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#f97316", fontWeight: 600 }}>WARM</span>}
-                      {s.type === "failure" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(239,68,68,0.1)", color: "#ef4444", fontWeight: 600 }}>FAIL</span>}
-                      {s.type === "dropset" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(168,85,247,0.1)", color: "#a855f7", fontWeight: 600 }}>DROP</span>}
-                      {s.rpe !== null && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#fb923c", fontWeight: 600 }}>RPE {s.rpe}</span>}
+                      {s.type === "warmup" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#f97316", fontWeight: 500 }}>WARM</span>}
+                      {s.type === "failure" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(239,68,68,0.1)", color: "#ef4444", fontWeight: 500 }}>FAIL</span>}
+                      {s.type === "dropset" && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(168,85,247,0.1)", color: "#a855f7", fontWeight: 500 }}>DROP</span>}
+                      {s.rpe !== null && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(249,115,22,0.1)", color: "#fb923c", fontWeight: 500 }}>RPE {s.rpe}</span>}
                     </div>
                   </div>
                 ))}

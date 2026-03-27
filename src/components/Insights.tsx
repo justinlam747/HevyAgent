@@ -225,7 +225,7 @@ export default function Insights({
                 <MuscleMap activeMuscles={allMuscles} size={56} />
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{split}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{split}</p>
                 <p style={{ fontSize: 11, color: "var(--text-muted)" }}>since {firstDate}</p>
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function Insights({
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Weekly Volume</p>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Weekly Volume</p>
                 <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Training load over time</p>
               </div>
               <Pill>Last 12 weeks</Pill>
@@ -301,7 +301,7 @@ export default function Insights({
                     onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
                     {isHovered && (
                       <div style={{ position: "absolute", top: -26, left: "50%", transform: "translateX(-50%)", zIndex: 10,
-                        padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 600, whiteSpace: "nowrap", background: "#fff", color: "#111" }}>
+                        padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 500, whiteSpace: "nowrap", background: "#fff", color: "#111" }}>
                         {formatVolume(v.volume)}
                       </div>
                     )}
@@ -326,7 +326,7 @@ export default function Insights({
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Card>
             <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Training Days</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Training Days</p>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Which days you hit the gym</p>
             </div>
             <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80 }}>
@@ -351,7 +351,7 @@ export default function Insights({
 
           <Card>
             <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Set Breakdown</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Set Breakdown</p>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>{(totalSets + setTypes.warmup).toLocaleString()} total sets logged</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -363,7 +363,7 @@ export default function Insights({
             {rpeStats && (
               <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg RPE</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{rpeStats.avg}<span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 400 }}> / 10</span></span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{rpeStats.avg}<span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 400 }}> / 10</span></span>
               </div>
             )}
           </Card>
@@ -373,7 +373,7 @@ export default function Insights({
         {muscleFreq.length > 0 && (
           <Card>
             <div style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Muscle Balance</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Muscle Balance</p>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Most trained areas — last 30 workouts</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -381,7 +381,7 @@ export default function Insights({
                 const pct = Math.round((m.count / maxMuscleCount) * 100);
                 return (
                   <div key={m.muscle} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12, width: 76, textAlign: "right", color: "var(--text-primary)", fontWeight: 600 }}>{capitalize(m.muscle)}</span>
+                    <span style={{ fontSize: 12, width: 76, textAlign: "right", color: "var(--text-primary)", fontWeight: 500 }}>{capitalize(m.muscle)}</span>
                     <div style={{ flex: 1, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
                       <div style={{ height: "100%", borderRadius: 3, width: `${pct}%`, background: "var(--accent)", transition: "width 0.5s ease" }} />
                     </div>
@@ -401,7 +401,7 @@ export default function Insights({
         {topPRs.length > 0 && (
           <Card>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Personal Records</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Personal Records</p>
               <Trophy size={15} style={{ color: "#FFD700" }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -415,12 +415,12 @@ export default function Insights({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         {medal && <span style={{ fontSize: 12 }}>{medal}</span>}
-                        <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pr.exerciseTitle}</p>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pr.exerciseTitle}</p>
                       </div>
                       <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{formatDateShort(pr.date)}</p>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{formatWeight(pr.weight)} &times; {pr.reps}</p>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)" }}>{formatWeight(pr.weight)} &times; {pr.reps}</p>
                       <p style={{ fontSize: 10, color: "var(--text-muted)" }}>{formatVolume(pr.weight * pr.reps)}</p>
                     </div>
                   </div>
@@ -434,15 +434,15 @@ export default function Insights({
         {topExercises.length > 0 && (
           <Card>
             <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Most Performed</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>Most Performed</p>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Your go-to exercises</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {topExercises.map(([name, count], i) => (
                 <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: i === topExercises.length - 1 ? "none" : "1px solid rgba(255,255,255,0.04)" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", width: 18 }}>{i + 1}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)", width: 18 }}>{i + 1}</span>
                   <p style={{ flex: 1, fontSize: 12, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>{count}x</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{count}x</span>
                 </div>
               ))}
             </div>
@@ -451,7 +451,7 @@ export default function Insights({
 
         {/* Highlight records */}
         <Card>
-          <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Highlights</p>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", marginBottom: 12 }}>Highlights</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {heaviestSet && (
               <HighlightRow emoji="🏋️" label="Heaviest Lift" value={formatWeight(heaviestSet.weight)} sub={`${heaviestSet.exercise} — ${formatDateShort(heaviestSet.date)}`} />
@@ -484,7 +484,7 @@ function Card({ children }: { children: React.ReactNode }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>{children}</p>;
+  return <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.03em" }}>{children}</p>;
 }
 
 function BigNum({ children }: { children: React.ReactNode }) {
@@ -507,7 +507,7 @@ function MiniStat({ emoji, value }: { emoji: string; value: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <span style={{ fontSize: 11 }}>{emoji}</span>
-      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)" }}>{value}</span>
+      <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-secondary)" }}>{value}</span>
     </div>
   );
 }
@@ -518,7 +518,7 @@ function SetRow({ label, value, total, color }: { label: string; value: number; 
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{ width: 6, height: 6, borderRadius: 2, background: color, flexShrink: 0 }} />
       <span style={{ fontSize: 12, color: "var(--text-secondary)", flex: 1 }}>{label}</span>
-      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-primary)", width: 36, textAlign: "right" }}>{value.toLocaleString()}</span>
+      <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-primary)", width: 36, textAlign: "right" }}>{value.toLocaleString()}</span>
       <span style={{ fontSize: 10, color: "var(--text-muted)", width: 28, textAlign: "right" }}>{pct}%</span>
     </div>
   );
@@ -532,7 +532,7 @@ function HighlightRow({ emoji, label, value, sub }: { emoji: string; label: stri
         <p style={{ fontSize: 11, color: "var(--text-muted)" }}>{label}</p>
         <p style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub}</p>
       </div>
-      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", flexShrink: 0 }}>{value}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", flexShrink: 0 }}>{value}</span>
     </div>
   );
 }

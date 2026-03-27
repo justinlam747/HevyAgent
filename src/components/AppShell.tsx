@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { ClipLoader } from "react-spinners";
 import { useApiKey, useHevyData } from "@/lib/store";
 import type { Workout } from "@/lib/hevy";
 import { AppDataProvider } from "@/lib/app-context";
@@ -44,7 +45,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (loading && workouts.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sm text-[var(--text-muted)] animate-pulse">Loading workouts...</div>
+        <div className="flex flex-col items-center gap-3">
+          <ClipLoader color="#4f9cf7" size={28} speedMultiplier={0.8} />
+          <span className="text-sm text-[var(--text-muted)]">Loading workouts...</span>
+        </div>
       </div>
     );
   }
