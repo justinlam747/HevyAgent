@@ -193,8 +193,3 @@ export async function fetchAllRoutines(apiKey: string): Promise<Routine[]> {
 
   return all;
 }
-// commit-marker-6
-// commit-marker-19
-// commit-marker-47
-// commit-marker-60
-// commit-marker-88

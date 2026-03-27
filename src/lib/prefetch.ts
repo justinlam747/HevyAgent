@@ -145,9 +145,3 @@ Suggested tools: ${prefetch.toolHints.join(", ")}
 ${prefetch.relevantContext}
 </retrieved_context>`;
 }
-// commit-marker-11
-// commit-marker-14
-// commit-marker-52
-// commit-marker-55
-// commit-marker-93
-// commit-marker-96

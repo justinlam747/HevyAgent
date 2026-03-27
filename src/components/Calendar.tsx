@@ -451,9 +451,3 @@ export default function Calendar({
     </div>
   );
 }
-// commit-marker-8
-// commit-marker-17
-// commit-marker-49
-// commit-marker-58
-// commit-marker-90
-// commit-marker-99
