@@ -1125,3 +1125,132 @@ body {
   .chat-presets { grid-template-columns: repeat(2, 1fr); }
   .chat-welcome-title { font-size: 22px; }
 }
+
+/* ═══════════════════════════════════
+   Landing page load-in animations
+   ═══════════════════════════════════ */
+
+@keyframes land-fade-up {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes land-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes land-scale-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes land-bar-grow {
+  0% { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+
+@keyframes land-bar-fill {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Idle floating / breathing */
+
+@keyframes idle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes idle-float-alt {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(0.5deg); }
+}
+
+@keyframes idle-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes idle-glow-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(79,156,247,0.35); }
+  50% { box-shadow: 0 0 22px rgba(79,156,247,0.55); }
+}
+
+@keyframes idle-sway {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(3px) translateY(-2px); }
+  75% { transform: translateX(-3px) translateY(2px); }
+}
+
+@keyframes idle-bar-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+
+.land-in {
+  opacity: 0;
+  animation: land-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.land-in-scale {
+  opacity: 0;
+  animation: land-scale-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.land-in-fade {
+  opacity: 0;
+  animation: land-fade-in 0.6s ease forwards;
+}
+
+/* Stagger delays */
+.land-d0 { animation-delay: 0s; }
+.land-d1 { animation-delay: 0.08s; }
+.land-d2 { animation-delay: 0.16s; }
+.land-d3 { animation-delay: 0.24s; }
+.land-d4 { animation-delay: 0.32s; }
+.land-d5 { animation-delay: 0.4s; }
+.land-d6 { animation-delay: 0.5s; }
+.land-d7 { animation-delay: 0.6s; }
+.land-d8 { animation-delay: 0.7s; }
+.land-d9 { animation-delay: 0.8s; }
+.land-d10 { animation-delay: 0.9s; }
+
+/* Idle classes */
+.idle-float {
+  animation: idle-float 4s ease-in-out infinite;
+}
+
+.idle-float-alt {
+  animation: idle-float-alt 5s ease-in-out infinite;
+}
+
+.idle-sway {
+  animation: idle-sway 6s ease-in-out infinite;
+}
+
+.idle-breathe {
+  animation: idle-breathe 3s ease-in-out infinite;
+}
+
+.idle-bar-breathe {
+  animation: idle-bar-breathe 2.5s ease-in-out infinite;
+}
+
+.idle-glow-pulse {
+  animation: idle-glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* Volume bars load-in */
+.vol-bar-anim {
+  transform-origin: bottom;
+  animation: land-bar-grow 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: scaleY(0);
+}
+
+/* Muscle balance bar load-in */
+.balance-bar-anim {
+  transform-origin: left;
+  animation: land-bar-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: scaleX(0);
+}
